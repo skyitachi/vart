@@ -1383,6 +1383,7 @@ mod tests {
         }
     }
 
+
     // Inserting Two values into the tree and removing one of them
     // should result in a tree root of type twig
     #[test]
@@ -1997,5 +1998,31 @@ mod tests {
             .insert(&VariableSizeKey::from_str("key_7").unwrap(), 1, 0, 0)
             .is_ok());
         assert!(tree.version() == curr_version + 3);
+    }
+
+    #[test]
+    fn multi_insert() {
+        let key1 = FixedSizeKey::from(1u8);
+        // let key2 = FixedSizeKey::from(2u8);
+
+        let mut tree = Tree::<FixedSizeKey<8>, i32>::new();
+
+        tree.insert(&key1, 10, 10, 0).unwrap();
+        println!("tree current version {}", tree.version());
+
+        // cannot insert value with version older than root version
+        // tree.insert(&key1, 11, 8, 0).unwrap();
+
+        tree.insert(&key1, 11, 11, 0).unwrap();
+
+        let (_, val, version, _) = tree.get(&key1, 10).unwrap();
+        println!("latest version val {}, version {}", val, version);
+
+        let (_, val, version, _) = tree.get(&key1, 11).unwrap();
+        println!("newest version val {}, version {}", val, version);
+
+        // it will return newest version
+        let (_, val, version, _) = tree.get(&key1, 15).unwrap();
+        println!("non exists version val {}, version {}", val, version);
     }
 }
