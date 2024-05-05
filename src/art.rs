@@ -1365,12 +1365,14 @@ mod tests {
     fn inserting_keys_with_common_prefix() {
         let key1 = VariableSizeKey::from_str("foo").unwrap();
         let key2 = VariableSizeKey::from_str("foo2").unwrap();
+        let key3 = VariableSizeKey::from_str("foo_3").unwrap();
 
         let mut tree = Tree::<VariableSizeKey, i32>::new();
 
         // Insertion
         tree.insert(&key1, 1, 0, 0).unwrap();
         tree.insert(&key2, 1, 0, 0).unwrap();
+        tree.insert(&key3, 1, 0, 0).unwrap();
 
         // Removal
         assert!(tree.remove(&key1).unwrap());

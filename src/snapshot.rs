@@ -167,10 +167,14 @@ mod tests {
         let mut tree: Tree<VariableSizeKey, i32> = Tree::<VariableSizeKey, i32>::new();
         let key_1 = VariableSizeKey::from_str("key_1").unwrap();
         let key_2 = VariableSizeKey::from_str("key_2").unwrap();
+        let key_11 = VariableSizeKey::from_str("key_11").unwrap();
         let key_3_snap1 = VariableSizeKey::from_str("key_3_snap1").unwrap();
         let key_3_snap2 = VariableSizeKey::from_str("key_3_snap2").unwrap();
 
+        let key_12_snap1 = VariableSizeKey::from_str("key_12").unwrap();
+
         assert!(tree.insert(&key_1, 1, 0, 0).is_ok());
+        assert!(tree.insert(&key_11, 1, 0, 0).is_ok());
 
         // Keys inserted before snapshot creation should be visible
         let mut snap1 = tree.create_snapshot().unwrap();
@@ -186,10 +190,32 @@ mod tests {
 
         // Keys inserted after snapshot creation should be visible to the snapshot that inserted them
         assert!(snap1.insert(&key_3_snap1, 2, 0).is_ok());
-        assert_eq!(snap1.get(&key_3_snap1).unwrap(), (2, 2, 0));
+        assert_eq!(snap1.get(&key_3_snap1).unwrap(), (2, 3, 0));
+
+        println!("tree version :{}, snapshot version: {}", tree.version(), snap1.version());
+
+        if let Some(root) = &tree.root {
+            println!("tree root node name: {}", root.node_type_name());
+        } else {
+            panic!("Tree root is None");
+        }
+
+        if let Some(snap_root) = &snap1.root {
+            println!("snap1 root node name: {}", snap_root.node_type_name());
+        }
+
+        assert!(tree.get(&key_3_snap1, 0).is_err());
+
+        assert!(snap1.insert(&key_12_snap1, 1, 0).is_ok());
+
+        // how to implement snapshot
+        assert!(snap1.get(&key_12_snap1).is_ok());
+        println!("snapshot ts: {}", snap1.ts);
+
+        assert!(tree.get(&key_12_snap1, 11).is_err());
 
         assert!(snap2.insert(&key_3_snap2, 3, 0).is_ok());
-        assert_eq!(snap2.get(&key_3_snap2).unwrap(), (3, 2, 0));
+        assert_eq!(snap2.get(&key_3_snap2).unwrap(), (3, 3, 0));
 
         // Keys inserted after snapshot creation should not be visible to other snapshots
         assert!(snap1.get(&key_3_snap2).is_err());
