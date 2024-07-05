@@ -8,6 +8,9 @@ use crate::node::{FlatNode, Node256, Node48, NodeTrait, TwigNode, Version};
 use crate::snapshot::Snapshot;
 use crate::{KeyTrait, TrieError};
 
+use std::fs::File;
+use std::io::Write;
+
 // Minimum and maximum number of children for Node4
 const NODE4MIN: usize = 2;
 const NODE4MAX: usize = 4;
@@ -1079,6 +1082,45 @@ impl<P: KeyTrait, V: Clone> Tree<P, V> {
         Ok(())
     }
 
+    pub fn draw(&mut self, path: String) {
+        let mut file = File::create(path).expect("无法创建文件");
+        file.write_all(b"digraph G {\n").unwrap();
+
+        file.write_all(b"}\n").unwrap();
+        file.flush().unwrap();
+    }
+
+    fn draw_node(&self, output: &mut File) {
+        let mut id: i32 = 0;
+
+        match &self.root {
+            None => {},
+            Some(root) => {
+
+                match &root.node_type{
+                    NodeType::Twig(n) => {
+                        id += 1;
+                        let leaf_prefix = format!("Twig_{}", id);
+                        output.write(leaf_prefix.as_bytes()).unwrap();
+                        output.write(b"label=<<TABLE BORDER=\"0\" CELLBORDER=\"1\" CELLSPACING=\"0\" CELLPADDING=\"4\">\n").unwrap();
+
+                        output.write(format!("<TR><TD COLSPAN=\"{}\"> twig_{}</TD></TR><TR>\n", 1, id).as_bytes()).unwrap();
+                    }
+                    NodeType::Node1(n) => {
+                    }
+                    NodeType::Node4(n) => {
+                    }
+                    NodeType::Node16(n) => {
+                    }
+                    NodeType::Node48(n) => {
+                    }
+                    NodeType::Node256(n) => {
+                    }
+                }
+            }
+        }
+    }
+
     pub fn remove(&mut self, key: &P) -> Result<bool, TrieError> {
         // Check if the tree is already closed
         self.check_if_closed()?;
@@ -1150,6 +1192,7 @@ impl<P: KeyTrait, V: Clone> Tree<P, V> {
         // Check if the tree is already closed
         self.check_if_closed()?;
 
+        // NOTE: all nodes are cloned?
         let root = self.root.as_ref().cloned();
         let version = self.root.as_ref().map_or(1, |root| root.version() + 1);
         let new_snapshot = Snapshot::new(root, version);
@@ -2026,5 +2069,18 @@ mod tests {
         // it will return newest version
         let (_, val, version, _) = tree.get(&key1, 15).unwrap();
         println!("non exists version val {}, version {}", val, version);
+    }
+
+    #[test]
+    fn insert_debug() {
+        let key1 = VariableSizeKey::from_str("foo").unwrap();
+        let key2 = VariableSizeKey::from_str("foo2").unwrap();
+
+        let mut tree = Tree::<VariableSizeKey, i32>::new();
+
+        // Insertion
+        tree.insert(&key1, 1, 0, 0).unwrap();
+        tree.insert(&key2, 1, 0, 0).unwrap();
+
     }
 }

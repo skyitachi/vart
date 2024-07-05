@@ -262,6 +262,7 @@ impl<P: KeyTrait + Clone, N: Version, const WIDTH: usize> FlatNode<P, N, WIDTH> 
 
 impl<P: KeyTrait + Clone, N: Version, const WIDTH: usize> NodeTrait<N> for FlatNode<P, N, WIDTH> {
     fn clone(&self) -> Self {
+        println!("node in clone: {}", WIDTH);
         let mut new_node = Self::new(self.prefix.clone());
         for i in 0..self.num_children as usize {
             new_node.keys[i] = self.keys[i];

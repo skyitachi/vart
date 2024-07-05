@@ -161,6 +161,36 @@ mod tests {
         let expected_tree_ts = keys.len() as u64;
         assert_eq!(tree.version(), expected_tree_ts);
     }
+    #[test]
+    fn snapshot_isolation_hack() {
+        let mut tree: Tree<VariableSizeKey, i32> = Tree::<VariableSizeKey, i32>::new();
+        let key_1 = VariableSizeKey::from_str("foo").unwrap();
+        let key_2 = VariableSizeKey::from_str("foo123").unwrap();
+        let key_3 = VariableSizeKey::from_str("foo134").unwrap();
+        let key_4 = VariableSizeKey::from_str("foo154").unwrap();
+
+        let key_12_snap1 = VariableSizeKey::from_str("key_12").unwrap();
+
+        assert!(tree.insert(&key_1, 1, 0, 0).is_ok());
+        assert!(tree.insert(&key_2, 1, 0, 0).is_ok());
+        assert!(tree.insert(&key_3, 1, 0, 0).is_ok());
+
+        // Keys inserted before snapshot creation should be visible
+        let mut snap1 = tree.create_snapshot().unwrap();
+        assert_eq!(snap1.get(&key_1).unwrap(), (1, 1, 0));
+
+        assert!(snap1.insert(&key_4, 1, 0).is_ok());
+
+        assert_eq!(snap1.get(&key_4).unwrap(), (1, 4, 0));
+
+
+        // assert!(tree.get(&key_4, 1000).is_ok());
+
+        assert!(tree.get(&key_4, 0).is_err());
+
+
+        assert!(snap1.close().is_ok());
+    }
 
     #[test]
     fn snapshot_isolation() {
