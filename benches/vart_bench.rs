@@ -14,7 +14,7 @@ fn seeded_rng(alter: u64) -> impl Rng {
 
 pub fn seq_insert(c: &mut Criterion) {
     let mut group = c.benchmark_group("seq_insert");
-    group.throughput(Throughput::Elements(1));
+    // group.throughput(Throughput::Elements(1));
     group.bench_function("seq_insert", |b| {
         let mut tree = Tree::<FixedSizeKey<16>, _>::new();
         let mut key = 0u64;
@@ -29,7 +29,7 @@ pub fn seq_insert(c: &mut Criterion) {
 
 pub fn rand_insert(c: &mut Criterion) {
     let mut group = c.benchmark_group("rand_insert");
-    group.throughput(Throughput::Elements(1));
+    // group.throughput(Throughput::Elements(1));
 
     let keys = gen_keys(3, 2, 3);
 
@@ -176,5 +176,7 @@ fn gen_keys(l1_prefix: usize, l2_prefix: usize, suffix: usize) -> Vec<String> {
 
 criterion_group!(delete_benches, seq_delete, rand_delete);
 criterion_group!(insert_benches, seq_insert, rand_insert);
+criterion_group!(simple_insert_benches, seq_insert, rand_insert);
 criterion_group!(read_benches, seq_get, rand_get, rand_get_str);
-criterion_main!(insert_benches, read_benches);
+// criterion_main!(insert_benches, read_benches);
+criterion_main!(simple_insert_benches);

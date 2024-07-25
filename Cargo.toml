@@ -24,6 +24,10 @@ name = "vart_bench"
 path = "benches/vart_bench.rs"
 harness = false
 
+#[[bench]]
+#name = "vart_bench2"
+#harness = false
+
 [dev-dependencies]
 rand = "0.8.5"
-criterion = "0.5.1"
+criterion = { version = "0.5.1", features = ["html_reports"] }
